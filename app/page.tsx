@@ -53,6 +53,7 @@ export default async function HomePage() {
                 published_at={post.published_at}
                 tags={post.tags || []}
                 cover_image_url={post.cover_image_url}
+                views={post.views || 0}
               />
             ))}
           </div>

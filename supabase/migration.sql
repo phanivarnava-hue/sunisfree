@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS sunisfree_posts (
   tags TEXT[] DEFAULT '{}',
   published BOOLEAN DEFAULT false,
   published_at TIMESTAMPTZ,
+  views INTEGER DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
@@ -38,3 +39,11 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER sunisfree_posts_updated_at
   BEFORE UPDATE ON sunisfree_posts
   FOR EACH ROW EXECUTE FUNCTION update_sunisfree_updated_at();
+
+-- Increment views RPC
+CREATE OR REPLACE FUNCTION increment_sunisfree_views(post_slug TEXT)
+RETURNS void AS $$
+BEGIN
+  UPDATE sunisfree_posts SET views = COALESCE(views, 0) + 1 WHERE slug = post_slug;
+END;
+$$ LANGUAGE plpgsql;

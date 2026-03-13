@@ -13,6 +13,7 @@ interface Post {
   created_at: string;
   updated_at: string;
   author_name: string;
+  views: number;
 }
 
 export default function WriteDashboard() {
@@ -41,7 +42,7 @@ export default function WriteDashboard() {
   async function loadPosts() {
     const { data } = await supabase
       .from("sunisfree_posts")
-      .select("id, title, slug, published, published_at, created_at, updated_at, author_name")
+      .select("id, title, slug, published, published_at, created_at, updated_at, author_name, views")
       .order("updated_at", { ascending: false });
 
     setPosts(data || []);
@@ -229,7 +230,7 @@ export default function WriteDashboard() {
                   </span>
                 </div>
                 <p className="text-xs text-muted">
-                  by {post.author_name} · Updated{" "}
+                  by {post.author_name} · {post.views || 0} views · Updated{" "}
                   {new Date(post.updated_at).toLocaleDateString("en-US", {
                     month: "short",
                     day: "numeric",

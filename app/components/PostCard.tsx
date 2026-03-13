@@ -8,6 +8,7 @@ interface PostCardProps {
   published_at: string | null;
   tags: string[];
   cover_image_url?: string | null;
+  views?: number;
 }
 
 export default function PostCard({
@@ -18,6 +19,7 @@ export default function PostCard({
   published_at,
   tags,
   cover_image_url,
+  views,
 }: PostCardProps) {
   const date = published_at
     ? new Date(published_at).toLocaleDateString("en-US", {
@@ -55,6 +57,12 @@ export default function PostCard({
             <>
               <span>&middot;</span>
               <span>{date}</span>
+            </>
+          )}
+          {typeof views === "number" && views > 0 && (
+            <>
+              <span>&middot;</span>
+              <span>{views} {views === 1 ? "view" : "views"}</span>
             </>
           )}
           {tags.length > 0 && (

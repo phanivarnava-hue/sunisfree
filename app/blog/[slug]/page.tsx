@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import MarkdownRenderer from "@/app/components/MarkdownRenderer";
+import ViewTracker from "@/app/components/ViewTracker";
 
 export const revalidate = 60;
 
@@ -58,6 +59,12 @@ export default async function BlogPostPage({
               <span>{date}</span>
             </>
           )}
+          {post.views > 0 && (
+            <>
+              <span>&middot;</span>
+              <span>{post.views} {post.views === 1 ? "view" : "views"}</span>
+            </>
+          )}
         </div>
         {post.tags && post.tags.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-3">
@@ -82,6 +89,7 @@ export default async function BlogPostPage({
       )}
 
       <MarkdownRenderer content={post.content} />
+      <ViewTracker slug={slug} />
     </article>
   );
 }
