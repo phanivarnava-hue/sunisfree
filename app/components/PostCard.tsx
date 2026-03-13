@@ -7,6 +7,7 @@ interface PostCardProps {
   author_name: string;
   published_at: string | null;
   tags: string[];
+  cover_image_url?: string | null;
 }
 
 export default function PostCard({
@@ -16,6 +17,7 @@ export default function PostCard({
   author_name,
   published_at,
   tags,
+  cover_image_url,
 }: PostCardProps) {
   const date = published_at
     ? new Date(published_at).toLocaleDateString("en-US", {
@@ -27,7 +29,15 @@ export default function PostCard({
 
   return (
     <Link href={`/blog/${slug}`} className="block group">
-      <article className="bg-white rounded-xl border border-green-100 p-6 transition-all duration-200 hover:shadow-lg hover:shadow-green-100/50 hover:border-green-300 hover:-translate-y-0.5">
+      <article className="bg-white rounded-xl border border-green-100 overflow-hidden transition-all duration-200 hover:shadow-lg hover:shadow-green-100/50 hover:border-green-300 hover:-translate-y-0.5">
+        {cover_image_url && (
+          <img
+            src={cover_image_url}
+            alt=""
+            className="w-full h-48 object-cover"
+          />
+        )}
+        <div className="p-6">
         <h2
           className="text-xl font-bold text-green-900 group-hover:text-green-700 transition-colors mb-2"
           style={{ fontFamily: "var(--font-space-grotesk), sans-serif" }}
@@ -62,6 +72,7 @@ export default function PostCard({
               </div>
             </>
           )}
+        </div>
         </div>
       </article>
     </Link>

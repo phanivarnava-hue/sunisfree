@@ -19,12 +19,15 @@ export default function EditPostPage({
   const [tags, setTags] = useState("");
   const [excerpt, setExcerpt] = useState("");
   const [content, setContent] = useState("");
+  const [coverImageUrl, setCoverImageUrl] = useState("");
+  const [uploading, setUploading] = useState(false);
   const [published, setPublished] = useState(false);
   const [preview, setPreview] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const supabase = createClient();
 
@@ -56,11 +59,37 @@ export default function EditPostPage({
       setTags((post.tags || []).join(", "));
       setExcerpt(post.excerpt || "");
       setContent(post.content || "");
+      setCoverImageUrl(post.cover_image_url || "");
       setPublished(post.published);
       setLoading(false);
     }
     loadPost();
   }, [id, router, supabase]);
+
+  async function handleImageUpload(file: File) {
+    setError("");
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Upload failed");
+      } else {
+        setCoverImageUrl(data.url);
+      }
+    } catch {
+      setError("Upload failed");
+    }
+    setUploading(false);
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file) handleImageUpload(file);
+  }
 
   async function handleUpdate() {
     setError("");
@@ -81,6 +110,7 @@ export default function EditPostPage({
         .split(",")
         .map((t) => t.trim())
         .filter(Boolean),
+      cover_image_url: coverImageUrl || null,
     };
 
     const { error: dbError } = await supabase
@@ -151,6 +181,54 @@ export default function EditPostPage({
       </h1>
 
       <div className="space-y-5">
+        {/* Cover Image */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Cover Image</label>
+          {coverImageUrl ? (
+            <div className="relative rounded-lg overflow-hidden border border-green-200">
+              <img
+                src={coverImageUrl}
+                alt="Cover preview"
+                className="w-full max-h-64 object-cover"
+              />
+              <button
+                type="button"
+                onClick={() => setCoverImageUrl("")}
+                className="absolute top-2 right-2 w-8 h-8 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          ) : (
+            <div
+              onDrop={handleDrop}
+              onDragOver={(e) => e.preventDefault()}
+              onClick={() => fileInputRef.current?.click()}
+              className="border-2 border-dashed border-green-300 rounded-lg p-8 text-center cursor-pointer hover:border-green-500 hover:bg-green-50/50 transition-colors"
+            >
+              <svg className="w-10 h-10 mx-auto text-green-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <p className="text-sm text-green-700 font-medium">
+                {uploading ? "Uploading..." : "Click or drag to upload cover image"}
+              </p>
+              <p className="text-xs text-gray-400 mt-1">JPG, PNG, GIF, or WebP (max 5MB)</p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/gif,image/webp"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleImageUpload(file);
+                }}
+              />
+            </div>
+          )}
+        </div>
+
         {/* Title */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>

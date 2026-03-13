@@ -52,6 +52,7 @@ export default async function HomePage() {
                 author_name={post.author_name}
                 published_at={post.published_at}
                 tags={post.tags || []}
+                cover_image_url={post.cover_image_url}
               />
             ))}
           </div>
