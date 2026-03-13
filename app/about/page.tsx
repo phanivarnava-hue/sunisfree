@@ -26,7 +26,7 @@ export default function AboutPage() {
         </p>
         <p>
           We believe energy independence isn&apos;t just an environmental issue
-          &mdash; it&apos;s about freedom, resilience, and building communities
+          - it&apos;s about freedom, resilience, and building communities
           that can take care of themselves. The technology is here. The question
           is whether we&apos;ll use it.
         </p>

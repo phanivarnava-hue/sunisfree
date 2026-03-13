@@ -15,7 +15,7 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Sun Is Free — Sustainability Blog",
+  title: "Sun Is Free - Sustainability Blog",
   description:
     "Honest takes on sustainability, energy independence, and why the transition matters.",
 };
