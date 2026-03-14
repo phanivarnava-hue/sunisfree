@@ -6,6 +6,10 @@ interface MarkdownRendererProps {
 }
 
 export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
+  // Collapse single newlines within paragraphs into spaces
+  // while preserving double newlines (paragraph breaks) and headings
+  const normalizedContent = content.replace(/([^\n])\n(?!\n|#|[-*>]|\d+\.|!\[|\*\*)/g, "$1 ");
+
   return (
     <div className="prose prose-green max-w-none">
       <ReactMarkdown
@@ -27,7 +31,7 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
           ),
         }}
       >
-        {content}
+        {normalizedContent}
       </ReactMarkdown>
     </div>
   );
