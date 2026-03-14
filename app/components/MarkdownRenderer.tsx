@@ -6,9 +6,13 @@ interface MarkdownRendererProps {
 }
 
 export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
-  // Normalize content: preserve paragraph breaks (double newlines) and block elements,
-  // but collapse single newlines within paragraphs into spaces
+  // Normalize content: ensure block elements (headings, lists, etc.) always have
+  // blank lines around them, then collapse single newlines within paragraphs
   const normalizedContent = content
+    // Ensure headings always have a blank line before them
+    .replace(/([^\n])\n(#{1,6}\s)/g, "$1\n\n$2")
+    // Ensure bold paragraph starts (like **Cooling savings.**) have a blank line before them
+    .replace(/([^\n])\n(\*\*)/g, "$1\n\n$2")
     .split(/\n{2,}/)
     .map((block) => {
       const trimmed = block.trim();
