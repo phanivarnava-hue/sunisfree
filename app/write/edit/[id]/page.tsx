@@ -184,8 +184,8 @@ export default function EditPostPage({
         {/* Cover Image */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Cover Image</label>
-          {coverImageUrl ? (
-            <div className="relative rounded-lg overflow-hidden border border-green-200">
+          {coverImageUrl && (
+            <div className="relative rounded-lg overflow-hidden border border-green-200 mb-3">
               <img
                 src={coverImageUrl}
                 alt="Cover preview"
@@ -205,32 +205,22 @@ export default function EditPostPage({
                 </button>
               </div>
             </div>
-          ) : (
-            <div
-              onDrop={handleDrop}
-              onDragOver={(e) => e.preventDefault()}
-              onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-green-300 rounded-lg p-8 text-center cursor-pointer hover:border-green-500 hover:bg-green-50/50 transition-colors"
-            >
-              <svg className="w-10 h-10 mx-auto text-green-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <p className="text-sm text-green-700 font-medium">
-                {uploading ? "Uploading..." : "Click or drag to upload cover image"}
-              </p>
-              <p className="text-xs text-gray-400 mt-1">JPG, PNG, GIF, or WebP (max 5MB)</p>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/gif,image/webp"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleImageUpload(file);
-                }}
-              />
-            </div>
           )}
+          <div className="border-2 border-dashed border-green-300 rounded-lg p-6 text-center hover:border-green-500 hover:bg-green-50/50 transition-colors">
+            <p className="text-sm text-green-700 font-medium mb-2">
+              {uploading ? "Uploading..." : coverImageUrl ? "Replace cover image" : "Upload cover image"}
+            </p>
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/gif,image/webp"
+              className="text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-green-100 file:text-green-700 hover:file:bg-green-200"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleImageUpload(file);
+              }}
+            />
+            <p className="text-xs text-gray-400 mt-2">JPG, PNG, GIF, or WebP (max 5MB)</p>
+          </div>
         </div>
 
         {/* Title */}
