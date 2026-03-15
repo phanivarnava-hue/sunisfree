@@ -3,8 +3,11 @@ import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import crypto from "crypto";
 
+export const dynamic = "force-dynamic";
+
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+const UPLOADS_DIR = "/app/public/uploads";
 
 export async function POST(request: NextRequest) {
   try {
@@ -31,13 +34,12 @@ export async function POST(request: NextRequest) {
 
     const ext = path.extname(file.name) || ".jpg";
     const filename = `${crypto.randomUUID()}${ext}`;
-    const uploadsDir = path.join(process.cwd(), "public", "uploads");
 
     // Ensure uploads directory exists
-    await mkdir(uploadsDir, { recursive: true });
+    await mkdir(UPLOADS_DIR, { recursive: true });
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    await writeFile(path.join(uploadsDir, filename), buffer);
+    await writeFile(path.join(UPLOADS_DIR, filename), buffer);
 
     return NextResponse.json({ url: `/api/uploads/${filename}` });
   } catch {

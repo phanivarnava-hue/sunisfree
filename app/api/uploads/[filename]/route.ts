@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { readFile } from "fs/promises";
 import path from "path";
 
+export const dynamic = "force-dynamic";
+
 const MIME_TYPES: Record<string, string> = {
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
@@ -24,17 +26,26 @@ export async function GET(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const filePath = path.join(process.cwd(), "public", "uploads", safe);
+  // Try multiple possible paths (standalone mode can change cwd)
+  const candidates = [
+    path.join(process.cwd(), "public", "uploads", safe),
+    path.join("/app", "public", "uploads", safe),
+    path.join("/app/public/uploads", safe),
+  ];
 
-  try {
-    const buffer = await readFile(filePath);
-    return new NextResponse(buffer, {
-      headers: {
-        "Content-Type": MIME_TYPES[ext],
-        "Cache-Control": "public, max-age=31536000, immutable",
-      },
-    });
-  } catch {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  for (const filePath of candidates) {
+    try {
+      const buffer = await readFile(filePath);
+      return new NextResponse(buffer, {
+        headers: {
+          "Content-Type": MIME_TYPES[ext],
+          "Cache-Control": "public, max-age=31536000, immutable",
+        },
+      });
+    } catch {
+      // try next path
+    }
   }
+
+  return NextResponse.json({ error: "Not found" }, { status: 404 });
 }
