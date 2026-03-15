@@ -32,16 +32,15 @@ export default function EditPostPage({
   const supabase = createClient();
 
   useEffect(() => {
-    const storedPass = localStorage.getItem("sunisfree_passphrase");
+    async function init() {
+      const authRes = await fetch("/api/auth/check");
+      if (!authRes.ok) {
+        router.push("/write");
+        return;
+      }
 
-    if (storedPass !== process.env.NEXT_PUBLIC_WRITER_PASSPHRASE) {
-      router.push("/write");
-      return;
-    }
+      setAuthenticated(true);
 
-    setAuthenticated(true);
-
-    async function loadPost() {
       const { data: post } = await supabase
         .from("sunisfree_posts")
         .select("*")
@@ -63,7 +62,7 @@ export default function EditPostPage({
       setPublished(post.published);
       setLoading(false);
     }
-    loadPost();
+    init();
   }, [id, router, supabase]);
 
   async function handleImageUpload(file: File) {

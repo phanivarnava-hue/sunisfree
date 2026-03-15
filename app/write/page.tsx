@@ -26,16 +26,18 @@ export default function WriteDashboard() {
   const supabase = createClient();
 
   useEffect(() => {
-    const storedPass = localStorage.getItem("sunisfree_passphrase");
-    const storedAuthor = localStorage.getItem("sunisfree_author");
-
-    if (storedPass === process.env.NEXT_PUBLIC_WRITER_PASSPHRASE) {
-      setAuthenticated(true);
-      setAuthorName(storedAuthor || "");
-      loadPosts();
-    } else {
-      setLoading(false);
-    }
+    // Check if already authenticated via cookie
+    fetch("/api/auth/check")
+      .then((res) => {
+        if (res.ok) {
+          setAuthenticated(true);
+          setAuthorName(localStorage.getItem("sunisfree_author") || "");
+          loadPosts();
+        } else {
+          setLoading(false);
+        }
+      })
+      .catch(() => setLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -49,12 +51,17 @@ export default function WriteDashboard() {
     setLoading(false);
   }
 
-  function handleLogin(e: React.FormEvent) {
+  async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setError("");
 
-    if (passphrase === process.env.NEXT_PUBLIC_WRITER_PASSPHRASE) {
-      localStorage.setItem("sunisfree_passphrase", passphrase);
+    const res = await fetch("/api/auth", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ passphrase }),
+    });
+
+    if (res.ok) {
       localStorage.setItem("sunisfree_author", authorName.trim() || "Anonymous");
       setAuthenticated(true);
       setLoading(true);
@@ -64,8 +71,8 @@ export default function WriteDashboard() {
     }
   }
 
-  function handleSignOut() {
-    localStorage.removeItem("sunisfree_passphrase");
+  async function handleSignOut() {
+    await fetch("/api/auth", { method: "DELETE" });
     localStorage.removeItem("sunisfree_author");
     setAuthenticated(false);
     setPassphrase("");

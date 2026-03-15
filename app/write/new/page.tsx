@@ -35,15 +35,16 @@ export default function NewPostPage() {
   const supabase = createClient();
 
   useEffect(() => {
-    const storedPass = localStorage.getItem("sunisfree_passphrase");
-    const storedAuthor = localStorage.getItem("sunisfree_author");
-
-    if (storedPass === process.env.NEXT_PUBLIC_WRITER_PASSPHRASE) {
-      setAuthenticated(true);
-      setAuthorName(storedAuthor || "Anonymous");
-    } else {
-      router.push("/write");
+    async function checkAuth() {
+      const res = await fetch("/api/auth/check");
+      if (res.ok) {
+        setAuthenticated(true);
+        setAuthorName(localStorage.getItem("sunisfree_author") || "Anonymous");
+      } else {
+        router.push("/write");
+      }
     }
+    checkAuth();
   }, [router]);
 
   async function handleImageUpload(file: File) {

@@ -10,6 +10,13 @@ const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 const UPLOADS_DIR = "/app/public/uploads";
 
 export async function POST(request: NextRequest) {
+  // Auth check
+  const token = request.cookies.get("writer_token")?.value;
+  const tokens = (globalThis as Record<string, unknown>).__writerTokens as Set<string> | undefined;
+  if (!token || !tokens || !tokens.has(token)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
