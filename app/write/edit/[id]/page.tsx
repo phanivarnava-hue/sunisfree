@@ -190,16 +190,20 @@ export default function EditPostPage({
                 src={coverImageUrl}
                 alt="Cover preview"
                 className="w-full max-h-64 object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = "none";
+                }}
               />
-              <button
-                type="button"
-                onClick={() => setCoverImageUrl("")}
-                className="absolute top-2 right-2 w-8 h-8 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+              <div className="p-4 bg-green-50 flex items-center justify-between">
+                <span className="text-sm text-gray-500 truncate mr-4">{coverImageUrl}</span>
+                <button
+                  type="button"
+                  onClick={() => setCoverImageUrl("")}
+                  className="shrink-0 px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 text-sm font-medium rounded-lg transition-colors"
+                >
+                  Remove image
+                </button>
+              </div>
             </div>
           ) : (
             <div
