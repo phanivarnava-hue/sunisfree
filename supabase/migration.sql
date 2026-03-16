@@ -47,3 +47,20 @@ BEGIN
   UPDATE sunisfree_posts SET views = COALESCE(views, 0) + 1 WHERE slug = post_slug;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Image storage
+CREATE TABLE IF NOT EXISTS sunisfree_images (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  filename TEXT NOT NULL UNIQUE,
+  data TEXT NOT NULL,
+  content_type TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE sunisfree_images ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Public can read images" ON sunisfree_images
+  FOR SELECT USING (true);
+
+CREATE POLICY "Allow all image operations" ON sunisfree_images
+  FOR ALL USING (true) WITH CHECK (true);

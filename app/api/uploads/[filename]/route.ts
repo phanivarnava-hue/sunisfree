@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { readFile } from "fs/promises";
 import path from "path";
 
 export const dynamic = "force-dynamic";
@@ -17,8 +16,6 @@ export async function GET(
   { params }: { params: Promise<{ filename: string }> }
 ) {
   const { filename } = await params;
-
-  // Prevent path traversal
   const safe = path.basename(filename);
   const ext = path.extname(safe).toLowerCase();
 
@@ -26,26 +23,41 @@ export async function GET(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  // Try multiple possible paths (standalone mode can change cwd)
-  const candidates = [
-    path.join(process.cwd(), "public", "uploads", safe),
-    path.join("/app", "public", "uploads", safe),
-    path.join("/app/public/uploads", safe),
-  ];
+  try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-  for (const filePath of candidates) {
-    try {
-      const buffer = await readFile(filePath);
-      return new NextResponse(buffer, {
+    const res = await fetch(
+      `${supabaseUrl}/sunisfree_images?filename=eq.${encodeURIComponent(safe)}&select=data,content_type`,
+      {
         headers: {
-          "Content-Type": MIME_TYPES[ext],
-          "Cache-Control": "public, max-age=31536000, immutable",
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+          Accept: "application/json",
         },
-      });
-    } catch {
-      // try next path
-    }
-  }
+      }
+    );
 
-  return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (!res.ok) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+
+    const rows = await res.json();
+
+    if (!rows || rows.length === 0) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+
+    const { data, content_type } = rows[0];
+    const buffer = Buffer.from(data, "base64");
+
+    return new NextResponse(buffer, {
+      headers: {
+        "Content-Type": content_type || MIME_TYPES[ext],
+        "Cache-Control": "public, max-age=31536000, immutable",
+      },
+    });
+  } catch {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
 }

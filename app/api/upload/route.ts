@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
 import crypto from "crypto";
+import path from "path";
 
 export const dynamic = "force-dynamic";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
-const UPLOADS_DIR = "/app/public/uploads";
 
 export async function POST(request: NextRequest) {
   // Auth check
@@ -41,18 +39,37 @@ export async function POST(request: NextRequest) {
 
     const ext = path.extname(file.name) || ".jpg";
     const filename = `${crypto.randomUUID()}${ext}`;
-
-    // Ensure uploads directory exists
-    await mkdir(UPLOADS_DIR, { recursive: true });
-
     const buffer = Buffer.from(await file.arrayBuffer());
-    await writeFile(path.join(UPLOADS_DIR, filename), buffer);
+    const base64 = buffer.toString("base64");
+
+    // Store in PostgreSQL via PostgREST
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+    const res = await fetch(`${supabaseUrl}/sunisfree_images`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: supabaseKey,
+        Authorization: `Bearer ${supabaseKey}`,
+        Prefer: "return=minimal",
+      },
+      body: JSON.stringify({
+        filename,
+        data: base64,
+        content_type: file.type,
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      console.error("DB insert failed:", err);
+      return NextResponse.json({ error: "Upload failed" }, { status: 500 });
+    }
 
     return NextResponse.json({ url: `/api/uploads/${filename}` });
-  } catch {
-    return NextResponse.json(
-      { error: "Upload failed" },
-      { status: 500 }
-    );
+  } catch (err) {
+    console.error("Upload failed:", err);
+    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
   }
 }
