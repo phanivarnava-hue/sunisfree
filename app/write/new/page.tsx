@@ -32,7 +32,7 @@ export default function NewPostPage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
-  const supabase = createClient();
+  const [supabase] = useState(() => createClient());
 
   useEffect(() => {
     async function checkAuth() {
